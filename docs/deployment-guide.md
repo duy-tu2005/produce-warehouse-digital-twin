@@ -35,7 +35,7 @@ môi trường của đúng phiên PowerShell, rồi chạy:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\thingsboard\setup.ps1
 ```
 
-Kết quả phải báo 29 rule nodes, 35 connections, 18 dashboard widgets và không
+Kết quả phải báo 29 rule nodes, 35 connections, 9 dashboard widgets và không
 in token. Script có thể chạy lại sau khi đổi Rule Chain/Dashboard.
 
 ## 4. Xác nhận bằng menu, không dùng deep link
