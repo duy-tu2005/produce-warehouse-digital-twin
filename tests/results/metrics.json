@@ -1,0 +1,24 @@
+{
+  "generated_at": 1790328950132,
+  "trial_count": 140,
+  "detected_count": 140,
+  "alarm_active_count": 140,
+  "true_detection_rate_pct": 100.0,
+  "alarm_creation_rate_pct": 100.0,
+  "false_alarm_rate_pct": 0.0,
+  "data_continuity_pct": 100.0,
+  "sequence_consistency_pct": 100.0,
+  "latency_ms": {
+    "median": 172,
+    "p95": 9650,
+    "max": 9888,
+    "connection_max": 9888
+  },
+  "acceptance": {
+    "tdr_at_least_90": true,
+    "far_at_most_5": true,
+    "connection_at_most_15s": true,
+    "continuity_at_least_95": true,
+    "sequence_at_least_99": true
+  }
+}

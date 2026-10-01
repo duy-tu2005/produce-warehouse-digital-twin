@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "author": "Produce Warehouse Digital Twin",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-esp32-devkit-v1", "id": "esp32", "top": 5, "left": 0, "attrs": {} },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht22",
+      "top": -38.1,
+      "left": 148.2,
+      "attrs": { "temperature": "24", "humidity": "65" }
+    },
+    {
+      "type": "wokwi-pir-motion-sensor",
+      "id": "pir1",
+      "top": 13.6,
+      "left": -112.98,
+      "attrs": { "delayTime": "5", "inhibitTime": "1.2" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "warningLed",
+      "top": 236.4,
+      "left": 32.6,
+      "attrs": { "color": "red", "label": "Warning LED GPIO2" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "ledResistor",
+      "top": 216,
+      "left": 114.65,
+      "rotate": 90,
+      "attrs": { "value": "220" }
+    }
+  ],
+  "connections": [
+    [ "esp32:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp32:RX0", "$serialMonitor:TX", "", [] ],
+    [ "dht22:VCC", "esp32:3V3", "red", [ "v86.7" ] ],
+    [ "dht22:GND", "esp32:GND.1", "black", [ "v77.2" ] ],
+    [ "dht22:SDA", "esp32:D15", "green", [ "h0.1", "v19.7" ] ],
+    [ "pir1:VCC", "esp32:VIN", "red", [ "v57.9" ] ],
+    [ "pir1:GND", "esp32:GND.2", "black", [ "h-0.26", "v48.4" ] ],
+    [ "pir1:OUT", "esp32:D13", "blue", [ "h-0.14", "v38.9" ] ],
+    [ "esp32:D2", "ledResistor:1", "orange", [] ],
+    [ "ledResistor:2", "warningLed:A", "orange", [ "v27.6" ] ],
+    [ "warningLed:C", "esp32:GND.2", "black", [ "h-57.2", "v-124.4" ] ]
+  ],
+  "serialMonitor": { "display": "always", "newline": "lf" },
+  "dependencies": {}
+}

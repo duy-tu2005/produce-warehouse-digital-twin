@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "Log.entryAdded",
+    "details": {
+      "entry": {
+        "source": "javascript",
+        "level": "warning",
+        "text": "The resource http://127.0.0.1:8080/assets/fonts/MaterialIcons-Regular.ttf was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+        "timestamp": 1790820983950.335,
+        "url": "http://127.0.0.1:8080/dashboards/1fbad6d0-b832-11f1-b5ea-4f9f6ab012b1"
+      }
+    }
+  },
+  {
+    "kind": "Log.entryAdded",
+    "details": {
+      "entry": {
+        "source": "javascript",
+        "level": "warning",
+        "text": "The resource http://127.0.0.1:8080/assets/fonts/MaterialIconsRound-Regular.otf was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally.",
+        "timestamp": 1790820983950.406,
+        "url": "http://127.0.0.1:8080/dashboards/1fbad6d0-b832-11f1-b5ea-4f9f6ab012b1"
+      }
+    }
+  }
+]

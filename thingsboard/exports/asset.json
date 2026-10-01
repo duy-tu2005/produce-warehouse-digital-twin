@@ -1,0 +1,29 @@
+{
+  "id": {
+    "entityType": "ASSET",
+    "id": "631f25d0-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "createdTime": 1790265768109,
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "customerId": {
+    "entityType": "CUSTOMER",
+    "id": "13814000-1dd2-11b2-8080-808080808080"
+  },
+  "name": "Produce_Warehouse_01",
+  "type": "Produce_Warehouse",
+  "label": "Kho bảo quản rau quả số 01",
+  "assetProfileId": {
+    "entityType": "ASSET_PROFILE",
+    "id": "49f94fe0-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "externalId": null,
+  "version": 21,
+  "additionalInfo": {
+    "description": "Digital Twin of the produce warehouse defined by the assignment",
+    "location": "Laboratory / Wokwi simulation",
+    "model": "Asset Contains ESP32 environment node"
+  }
+}

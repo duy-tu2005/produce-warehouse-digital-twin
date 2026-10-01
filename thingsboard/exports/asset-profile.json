@@ -1,0 +1,21 @@
+{
+  "id": {
+    "entityType": "ASSET_PROFILE",
+    "id": "49f94fe0-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "createdTime": 1790265725917,
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "name": "Produce_Warehouse",
+  "description": "Digital Twin root asset for a produce cold-storage warehouse",
+  "image": null,
+  "defaultRuleChainId": null,
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "defaultEdgeRuleChainId": null,
+  "externalId": null,
+  "version": 21,
+  "default": false
+}

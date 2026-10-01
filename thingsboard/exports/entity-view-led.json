@@ -1,0 +1,42 @@
+{
+  "entityId": {
+    "entityType": "DEVICE",
+    "id": "428c1ae0-bd44-11f1-a421-4f9f6ab012b1"
+  },
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "customerId": {
+    "entityType": "CUSTOMER",
+    "id": "13814000-1dd2-11b2-8080-808080808080"
+  },
+  "name": "LED_GPIO2_Control_Corner_View",
+  "type": "LED actuator",
+  "keys": {
+    "timeseries": [
+      "led_state"
+    ],
+    "attributes": {
+      "cs": [],
+      "ss": [
+        "map_led_x",
+        "map_led_y",
+        "map_led_type"
+      ],
+      "sh": []
+    }
+  },
+  "startTimeMs": 0,
+  "endTimeMs": 0,
+  "externalId": null,
+  "version": 8,
+  "id": {
+    "entityType": "ENTITY_VIEW",
+    "id": "73623ec0-bd39-11f1-a421-4f9f6ab012b1"
+  },
+  "createdTime": 1790818987180,
+  "additionalInfo": {
+    "description": "GPIO2 LED actuator shown at the warehouse control corner"
+  }
+}

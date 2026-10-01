@@ -1,0 +1,43 @@
+{
+  "id": {
+    "entityType": "DEVICE_PROFILE",
+    "id": "30d8d120-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "createdTime": 1790265683762,
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "name": "ESP32_Environment_Node",
+  "description": "ESP32 + DHT22 + PIR + GPIO2 LED for the produce warehouse twin",
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "defaultEdgeRuleChainId": null,
+  "externalId": null,
+  "version": 21,
+  "default": false,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": null
+  }
+}

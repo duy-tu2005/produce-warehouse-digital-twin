@@ -1,0 +1,42 @@
+{
+  "entityId": {
+    "entityType": "DEVICE",
+    "id": "428c1ae0-bd44-11f1-a421-4f9f6ab012b1"
+  },
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "customerId": {
+    "entityType": "CUSTOMER",
+    "id": "13814000-1dd2-11b2-8080-808080808080"
+  },
+  "name": "PIR_Loading_Door_View",
+  "type": "PIR sensor",
+  "keys": {
+    "timeseries": [
+      "motion"
+    ],
+    "attributes": {
+      "cs": [],
+      "ss": [
+        "map_motion_x",
+        "map_motion_y",
+        "map_motion_type"
+      ],
+      "sh": []
+    }
+  },
+  "startTimeMs": 0,
+  "endTimeMs": 0,
+  "externalId": null,
+  "version": 8,
+  "id": {
+    "entityType": "ENTITY_VIEW",
+    "id": "735f5890-bd39-11f1-a421-4f9f6ab012b1"
+  },
+  "createdTime": 1790818987161,
+  "additionalInfo": {
+    "description": "PIR motion sensor mounted beside the warehouse loading door"
+  }
+}

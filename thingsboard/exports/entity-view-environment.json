@@ -1,0 +1,45 @@
+{
+  "entityId": {
+    "entityType": "DEVICE",
+    "id": "428c1ae0-bd44-11f1-a421-4f9f6ab012b1"
+  },
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "customerId": {
+    "entityType": "CUSTOMER",
+    "id": "13814000-1dd2-11b2-8080-808080808080"
+  },
+  "name": "DHT22_Storage_Racks_View",
+  "type": "DHT22 sensor",
+  "keys": {
+    "timeseries": [
+      "temperature",
+      "humidity",
+      "rssi",
+      "sensor_valid"
+    ],
+    "attributes": {
+      "cs": [],
+      "ss": [
+        "map_env_x",
+        "map_env_y",
+        "map_env_type"
+      ],
+      "sh": []
+    }
+  },
+  "startTimeMs": 0,
+  "endTimeMs": 0,
+  "externalId": null,
+  "version": 8,
+  "id": {
+    "entityType": "ENTITY_VIEW",
+    "id": "7355bba0-bd39-11f1-a421-4f9f6ab012b1"
+  },
+  "createdTime": 1790818987098,
+  "additionalInfo": {
+    "description": "DHT22 environment sensor mounted beside the storage racks"
+  }
+}

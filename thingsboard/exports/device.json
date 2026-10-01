@@ -1,0 +1,39 @@
+{
+  "id": {
+    "entityType": "DEVICE",
+    "id": "428c1ae0-bd44-11f1-a421-4f9f6ab012b1"
+  },
+  "createdTime": 1790823629709,
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "customerId": {
+    "entityType": "CUSTOMER",
+    "id": "13814000-1dd2-11b2-8080-808080808080"
+  },
+  "name": "ESP32_Env_Node_01",
+  "type": "ESP32_Environment_Node",
+  "label": "ESP32 - DHT22, PIR, LED GPIO2",
+  "deviceProfileId": {
+    "entityType": "DEVICE_PROFILE",
+    "id": "30d8d120-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "firmwareId": null,
+  "softwareId": null,
+  "externalId": null,
+  "version": 1,
+  "additionalInfo": {
+    "description": "Physical layer of the produce warehouse Digital Twin",
+    "hardware": "ESP32 DevKit V1 + DHT22 + PIR + LED",
+    "firmware": "firmware/sketch.ino"
+  },
+  "deviceData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    }
+  }
+}

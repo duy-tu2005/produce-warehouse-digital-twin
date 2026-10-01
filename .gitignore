@@ -1,0 +1,25 @@
+# Local credentials and generated environment
+firmware/secrets.h
+.env.local
+thingsboard/.env.local
+
+# PlatformIO and Wokwi build output
+.pio/
+.vscode/.browse.c_cpp.db*
+.vscode/ipch/
+
+# Test and report intermediates
+tests/.runtime/
+tests/__pycache__/
+**/__pycache__/
+*.pyc
+report/.rendered/
+report/.runtime/
+slides/.rendered/
+slides/rendered/
+slides/.runtime/
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db

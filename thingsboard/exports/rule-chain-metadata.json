@@ -1,0 +1,1089 @@
+{
+  "ruleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "version": 23,
+  "firstNodeIndex": 0,
+  "nodes": [
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "425182e0-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629326,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
+      "name": "Message Type Switch",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "version": 0
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 80,
+        "layoutY": 360
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4251f810-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629328,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+      "name": "Load thresholds and previous state",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 1,
+      "configuration": {
+        "fetchTo": "METADATA",
+        "clientAttributeNames": [],
+        "sharedAttributeNames": [],
+        "serverAttributeNames": [
+          "temp_warn_low",
+          "temp_warn_high",
+          "temp_critical_low",
+          "temp_critical_high",
+          "humidity_warn_low",
+          "humidity_warn_high",
+          "humidity_critical_low",
+          "humidity_critical_high",
+          "temperature_rate_cpm",
+          "humidity_rate_ppm",
+          "stuck_epsilon",
+          "stuck_samples",
+          "recovery_clean_windows",
+          "actuator_mismatch_samples",
+          "expected_led_state",
+          "weak_rssi_warning",
+          "weak_rssi_critical",
+          "expected_state",
+          "security_mode"
+        ],
+        "latestTsKeyNames": [
+          "temperature",
+          "humidity",
+          "sequence",
+          "uptime_s",
+          "observed_state",
+          "anomaly_type",
+          "stuck_count",
+          "invalid_count",
+          "recovery_count",
+          "actuator_mismatch_count"
+        ],
+        "tellFailureIfAbsent": false,
+        "getLatestValueWithTs": true
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 320,
+        "layoutY": 80
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42529450-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629333,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Compute Digital Twin state",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "function asNumber(value, fallback) {\n    var parsed = parseFloat(value);\n    return isFinite(parsed) ? parsed : fallback;\n}\n\nfunction asInteger(value, fallback) {\n    var parsed = parseInt(value, 10);\n    return isFinite(parsed) ? parsed : fallback;\n}\n\nfunction asBoolean(value, fallback) {\n    if (value === true || value === \"true\") {\n        return true;\n    }\n    if (value === false || value === \"false\") {\n        return false;\n    }\n    return fallback;\n}\n\nfunction latestValue(key, fallback) {\n    var raw = metadata[key];\n    if (raw === null || raw === undefined || raw === \"\") {\n        return { present: false, value: fallback, ts: 0 };\n    }\n    try {\n        var object = typeof raw === \"string\" ? JSON.parse(raw) : raw;\n        if (object !== null && typeof object === \"object\" && object.value !== undefined) {\n            return {\n                present: true,\n                value: object.value,\n                ts: asInteger(object.ts, 0)\n            };\n        }\n    } catch (ignore) {\n        // Older server versions may return only the raw value.\n    }\n    return { present: true, value: raw, ts: 0 };\n}\n\nfunction configNumber(key, fallback) {\n    return asNumber(metadata[\"ss_\" + key], fallback);\n}\n\nfunction addCandidate(candidates, type, score, details) {\n    candidates.push({ type: type, score: score, details: details || {} });\n}\n\nfunction severityForScore(score) {\n    if (score >= 80) {\n        return \"CRITICAL\";\n    }\n    if (score >= 50) {\n        return \"HIGH\";\n    }\n    if (score >= 20) {\n        return \"WARNING\";\n    }\n    return \"NONE\";\n}\n\nfunction alarmSeverity(severity) {\n    if (severity === \"CRITICAL\") {\n        return \"CRITICAL\";\n    }\n    if (severity === \"HIGH\") {\n        return \"MAJOR\";\n    }\n    if (severity === \"WARNING\") {\n        return \"WARNING\";\n    }\n    return \"INDETERMINATE\";\n}\n\nvar previousTemperature = latestValue(\"temperature\", null);\nvar previousHumidity = latestValue(\"humidity\", null);\nvar previousSequence = latestValue(\"sequence\", null);\nvar previousUptime = latestValue(\"uptime_s\", null);\nvar previousObservedState = latestValue(\"observed_state\", \"INIT\");\nvar previousAnomalyType = latestValue(\"anomaly_type\", \"NONE\");\nvar previousStuckCount = latestValue(\"stuck_count\", 0);\nvar previousInvalidCount = latestValue(\"invalid_count\", 0);\nvar previousRecoveryCount = latestValue(\"recovery_count\", 0);\nvar previousActuatorMismatchCount = latestValue(\"actuator_mismatch_count\", 0);\n\nvar currentTs = asInteger(metadata.ts, 0);\nif (currentTs <= 0) {\n    currentTs = Date.now();\n}\n\nvar temperature = asNumber(msg.temperature, NaN);\nvar humidity = asNumber(msg.humidity, NaN);\nvar rssi = asInteger(msg.rssi, -127);\nvar sequence = asInteger(msg.sequence, -1);\nvar uptime = asInteger(msg.uptime_s, -1);\nvar motion = asBoolean(msg.motion, false);\nvar ledState = asBoolean(msg.led_state, false);\nvar sensorFlag = asBoolean(msg.sensor_valid, true);\n\nvar sensorValid = sensorFlag && isFinite(temperature) && isFinite(humidity) &&\n    temperature >= -40 && temperature <= 80 && humidity >= 0 && humidity <= 100;\n\nvar tempWarnLow = configNumber(\"temp_warn_low\", 18);\nvar tempWarnHigh = configNumber(\"temp_warn_high\", 26);\nvar tempCriticalLow = configNumber(\"temp_critical_low\", 15);\nvar tempCriticalHigh = configNumber(\"temp_critical_high\", 30);\nvar humidityWarnLow = configNumber(\"humidity_warn_low\", 55);\nvar humidityWarnHigh = configNumber(\"humidity_warn_high\", 75);\nvar humidityCriticalLow = configNumber(\"humidity_critical_low\", 45);\nvar humidityCriticalHigh = configNumber(\"humidity_critical_high\", 85);\nvar temperatureRateLimit = configNumber(\"temperature_rate_cpm\", 2);\nvar humidityRateLimit = configNumber(\"humidity_rate_ppm\", 10);\nvar stuckEpsilon = configNumber(\"stuck_epsilon\", 0.01);\nvar stuckSamples = asInteger(metadata.ss_stuck_samples, 12);\nvar recoveryWindows = asInteger(metadata.ss_recovery_clean_windows, 3);\nvar actuatorMismatchSamples = asInteger(metadata.ss_actuator_mismatch_samples, 3);\nvar weakRssiWarning = asInteger(metadata.ss_weak_rssi_warning, -80);\nvar weakRssiCritical = asInteger(metadata.ss_weak_rssi_critical, -90);\nvar expectedState = metadata.ss_expected_state || \"NORMAL\";\nvar securityMode = metadata.ss_security_mode || \"DISARMED\";\nvar expectedLedState = asBoolean(metadata.ss_expected_led_state, ledState);\n\nvar candidates = [];\nvar invalidCount = sensorValid ? 0 : asInteger(previousInvalidCount.value, 0) + 1;\nif (!sensorValid && invalidCount >= 3) {\n    addCandidate(candidates, \"INVALID_SENSOR\", 60, {\n        invalid_count: invalidCount,\n        temperature: msg.temperature,\n        humidity: msg.humidity\n    });\n}\n\nif (sensorValid) {\n    if (temperature < tempCriticalLow) {\n        addCandidate(candidates, \"LOW_TEMPERATURE\", 90, { value: temperature, threshold: tempCriticalLow });\n    } else if (temperature > tempCriticalHigh) {\n        addCandidate(candidates, \"HIGH_TEMPERATURE\", 90, { value: temperature, threshold: tempCriticalHigh });\n    } else if (temperature < tempWarnLow) {\n        addCandidate(candidates, \"LOW_TEMPERATURE\", 40, { value: temperature, threshold: tempWarnLow });\n    } else if (temperature > tempWarnHigh) {\n        addCandidate(candidates, \"HIGH_TEMPERATURE\", 40, { value: temperature, threshold: tempWarnHigh });\n    }\n\n    if (humidity < humidityCriticalLow) {\n        addCandidate(candidates, \"LOW_HUMIDITY\", 90, { value: humidity, threshold: humidityCriticalLow });\n    } else if (humidity > humidityCriticalHigh) {\n        addCandidate(candidates, \"HIGH_HUMIDITY\", 90, { value: humidity, threshold: humidityCriticalHigh });\n    } else if (humidity < humidityWarnLow) {\n        addCandidate(candidates, \"LOW_HUMIDITY\", 40, { value: humidity, threshold: humidityWarnLow });\n    } else if (humidity > humidityWarnHigh) {\n        addCandidate(candidates, \"HIGH_HUMIDITY\", 40, { value: humidity, threshold: humidityWarnHigh });\n    }\n}\n\nvar temperatureRate = 0;\nif (sensorValid && previousTemperature.present && previousTemperature.value !== null) {\n    var previousTempNumber = asNumber(previousTemperature.value, temperature);\n    var tempDeltaMs = previousTemperature.ts > 0 ? currentTs - previousTemperature.ts : 0;\n    if (tempDeltaMs > 0) {\n        temperatureRate = Math.abs(temperature - previousTempNumber) / (tempDeltaMs / 60000.0);\n        if (temperatureRate > temperatureRateLimit) {\n            addCandidate(candidates, \"TEMPERATURE_RATE_ANOMALY\",\n                temperatureRate > temperatureRateLimit * 2 ? 85 : 70,\n                { rate_c_per_min: temperatureRate, limit: temperatureRateLimit });\n        }\n    }\n}\n\nvar humidityRate = 0;\nif (sensorValid && previousHumidity.present && previousHumidity.value !== null) {\n    var previousHumidityNumber = asNumber(previousHumidity.value, humidity);\n    var humidityDeltaMs = previousHumidity.ts > 0 ? currentTs - previousHumidity.ts : 0;\n    if (humidityDeltaMs > 0) {\n        humidityRate = Math.abs(humidity - previousHumidityNumber) / (humidityDeltaMs / 60000.0);\n        if (humidityRate > humidityRateLimit) {\n            addCandidate(candidates, \"HUMIDITY_RATE_ANOMALY\",\n                humidityRate > humidityRateLimit * 2 ? 85 : 70,\n                { rate_pct_per_min: humidityRate, limit: humidityRateLimit });\n        }\n    }\n}\n\nvar stuckCount = 0;\nif (sensorValid && previousTemperature.present && previousHumidity.present) {\n    var sameTemperature = Math.abs(temperature - asNumber(previousTemperature.value, temperature)) < stuckEpsilon;\n    var sameHumidity = Math.abs(humidity - asNumber(previousHumidity.value, humidity)) < stuckEpsilon;\n    stuckCount = sameTemperature && sameHumidity ? asInteger(previousStuckCount.value, 0) + 1 : 0;\n    if (stuckCount >= stuckSamples) {\n        addCandidate(candidates, \"SENSOR_STUCK\", 70, {\n            samples: stuckCount,\n            epsilon: stuckEpsilon,\n            temperature: temperature,\n            humidity: humidity\n        });\n    }\n}\n\nvar restarted = previousUptime.present && uptime >= 0 && uptime < asInteger(previousUptime.value, uptime);\nvar sequenceGap = 0;\nif (restarted) {\n    addCandidate(candidates, \"DEVICE_RESTART\", 65, {\n        previous_uptime_s: asInteger(previousUptime.value, 0),\n        current_uptime_s: uptime\n    });\n} else if (previousSequence.present && sequence >= 0) {\n    var previousSequenceNumber = asInteger(previousSequence.value, sequence - 1);\n    if (sequence === previousSequenceNumber) {\n        addCandidate(candidates, \"SEQUENCE_GAP\", 60, {\n            mode: \"DUPLICATE\",\n            previous_sequence: previousSequenceNumber,\n            current_sequence: sequence,\n            gap: 0\n        });\n    } else if (sequence < previousSequenceNumber) {\n        addCandidate(candidates, \"SEQUENCE_GAP\", 75, {\n            mode: \"OUT_OF_ORDER\",\n            previous_sequence: previousSequenceNumber,\n            current_sequence: sequence,\n            gap: sequence - previousSequenceNumber - 1\n        });\n    } else if (sequence > previousSequenceNumber + 1) {\n        sequenceGap = sequence - previousSequenceNumber - 1;\n        addCandidate(candidates, \"SEQUENCE_GAP\", Math.min(80, 45 + sequenceGap * 5), {\n            mode: \"GAP\",\n            previous_sequence: previousSequenceNumber,\n            current_sequence: sequence,\n            gap: sequenceGap\n        });\n    }\n}\n\nif (rssi <= weakRssiCritical) {\n    addCandidate(candidates, \"WEAK_SIGNAL\", 80, { rssi: rssi, threshold: weakRssiCritical });\n} else if (rssi <= weakRssiWarning) {\n    addCandidate(candidates, \"WEAK_SIGNAL\", 35, { rssi: rssi, threshold: weakRssiWarning });\n}\n\nif (String(securityMode).toUpperCase() === \"ARMED\" && motion) {\n    addCandidate(candidates, \"UNEXPECTED_MOTION\", 70, { security_mode: securityMode, motion: true });\n}\n\nvar actuatorMismatchCount = ledState !== expectedLedState ?\n    asInteger(previousActuatorMismatchCount.value, 0) + 1 : 0;\nif (actuatorMismatchCount >= actuatorMismatchSamples) {\n    addCandidate(candidates, \"ACTUATOR_MISMATCH\", 70, {\n        expected_led_state: expectedLedState,\n        actual_led_state: ledState,\n        samples: actuatorMismatchCount\n    });\n}\n\nvar best = { type: \"NONE\", score: 0, details: {} };\nvar activeTypes = [];\nfor (var index = 0; index < candidates.length; index++) {\n    activeTypes.push(candidates[index].type);\n    if (candidates[index].score > best.score) {\n        best = candidates[index];\n    }\n}\n\nvar severity = severityForScore(best.score);\nvar previousState = String(previousObservedState.value || \"INIT\");\nvar recoveryCount = 0;\nvar observedState;\n\nif (best.type === \"DEVICE_RESTART\") {\n    observedState = \"RECOVERY\";\n    recoveryCount = 0;\n} else if (best.score >= 50) {\n    observedState = \"ANOMALY\";\n} else if (best.score >= 20) {\n    observedState = \"WARNING\";\n} else if (!previousObservedState.present) {\n    observedState = \"INIT\";\n} else if (previousState === \"OFFLINE\" || previousState === \"ANOMALY\" ||\n           previousState === \"WARNING\" || previousState === \"RECOVERY\") {\n    recoveryCount = asInteger(previousRecoveryCount.value, 0) + 1;\n    observedState = recoveryCount >= recoveryWindows ? \"NORMAL\" : \"RECOVERY\";\n} else {\n    observedState = \"NORMAL\";\n}\n\nif (best.score > 0) {\n    recoveryCount = 0;\n}\n\nvar anomaly = best.score > 0;\nvar healthScore = Math.max(0, 100 - best.score);\nvar previousType = String(previousAnomalyType.value || \"NONE\");\n\nmsg.last_seen = currentTs;\nmsg.observed_state = observedState;\nmsg.expected_state = expectedState;\nmsg.health_score = healthScore;\nmsg.anomaly_score = best.score;\nmsg.anomaly_type = best.type;\nmsg.anomaly = anomaly;\nmsg.severity = severity;\nmsg.online = true;\nmsg.state_match = observedState === expectedState;\nmsg.stuck_count = stuckCount;\nmsg.invalid_count = invalidCount;\nmsg.recovery_count = recoveryCount;\nmsg.temperature_rate_cpm = Math.round(temperatureRate * 100) / 100;\nmsg.humidity_rate_ppm = Math.round(humidityRate * 100) / 100;\nmsg.sequence_gap = sequenceGap;\nmsg.expected_led_state = expectedLedState;\nmsg.actuator_mismatch_count = actuatorMismatchCount;\nmsg.active_anomalies = JSON.stringify(activeTypes);\nmsg.anomaly_details = JSON.stringify(best.details);\nmsg.previous_anomaly_type = previousType;\n\nmetadata.prevAlarmType = previousType;\nmetadata.alarmType = best.type;\nmetadata.alarmSeverity = alarmSeverity(severity);\nmetadata.observedState = observedState;\n\nreturn { msg: msg, metadata: metadata, msgType: msgType };\n",
+        "tbelScript": "return {msg: msg, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 570,
+        "layoutY": 80
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4252bb60-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629334,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+      "name": "Save enriched device telemetry",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 1,
+      "configuration": {
+        "defaultTTL": 0,
+        "useServerTs": false,
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        }
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 830,
+        "layoutY": 20
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4252e270-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629335,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+      "name": "Originator: parent warehouse",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "originatorSource": "RELATED",
+        "relationsQuery": {
+          "direction": "TO",
+          "maxLevel": 1,
+          "filters": [
+            {
+              "relationType": "Contains",
+              "entityTypes": [
+                "ASSET"
+              ],
+              "negate": false
+            }
+          ],
+          "fetchLastLevelOnly": false
+        },
+        "entityType": null,
+        "entityNamePattern": null
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 830,
+        "layoutY": 130
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42530980-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629336,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Build warehouse twin payload",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "var twin = {\n    last_seen: msg.last_seen,\n    observed_state: msg.observed_state,\n    expected_state: msg.expected_state,\n    health_score: msg.health_score,\n    anomaly_score: msg.anomaly_score,\n    anomaly_type: msg.anomaly_type,\n    anomaly: msg.anomaly,\n    severity: msg.severity,\n    online: msg.online,\n    state_match: msg.state_match,\n    active_anomalies: msg.active_anomalies,\n    anomaly_details: msg.anomaly_details,\n    previous_anomaly_type: msg.previous_anomaly_type,\n    recovery_count: msg.recovery_count,\n    expected_led_state: msg.expected_led_state,\n    actuator_mismatch_count: msg.actuator_mismatch_count\n};\n\nreturn { msg: twin, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\" };\n",
+        "tbelScript": "return {msg: msg, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1080,
+        "layoutY": 130
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42530981-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629336,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+      "name": "Save twin time series",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 1,
+      "configuration": {
+        "defaultTTL": 0,
+        "useServerTs": false,
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        }
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1330,
+        "layoutY": 40
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42533090-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629337,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Prepare twin server attributes",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "return {msg: msg, metadata: metadata, msgType: 'POST_ATTRIBUTES_REQUEST'};",
+        "tbelScript": "return {msg: msg, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1330,
+        "layoutY": 130
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42533091-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629337,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+      "name": "Save twin server attributes",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 3,
+      "configuration": {
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        },
+        "scope": "SERVER_SCOPE",
+        "notifyDevice": false,
+        "sendAttributesUpdatedNotification": false,
+        "updateAttributesOnlyOnValueChange": true
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1580,
+        "layoutY": 130
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42537eb0-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629339,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+      "name": "Previous alarm changed?",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "var previousType = metadata.prevAlarmType || msg.previous_anomaly_type || \"NONE\";\nvar currentType = metadata.alarmType || msg.anomaly_type || \"NONE\";\nreturn previousType !== \"NONE\" && previousType !== currentType;\n\n",
+        "tbelScript": "return false;"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1330,
+        "layoutY": 240
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4253a5c0-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629340,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+      "name": "Clear previous anomaly alarm",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "alarmType": "${prevAlarmType}",
+        "scriptLang": "JS",
+        "alarmDetailsBuildJs": "var details = {\n  observed_state: msg.observed_state,\n  expected_state: msg.expected_state,\n  anomaly_score: msg.anomaly_score,\n  health_score: msg.health_score,\n  severity: msg.severity,\n  last_seen: msg.last_seen\n};\ntry {\n  details.detection = JSON.parse(msg.anomaly_details || '{}');\n} catch (e) {\n  details.detection = {raw: msg.anomaly_details};\n}\nreturn details;",
+        "alarmDetailsBuildTbel": "return {};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1580,
+        "layoutY": 230
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4253a5c1-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629340,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+      "name": "Anomaly active?",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "return msg.anomaly === true && msg.anomaly_type !== \"NONE\";\n\n",
+        "tbelScript": "return false;"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1810,
+        "layoutY": 260
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42541af0-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629343,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.action.TbCreateAlarmNode",
+      "name": "Create or update anomaly alarm",
+      "debugSettings": {
+        "failuresEnabled": true,
+        "allEnabled": false,
+        "allEnabledUntil": 0
+      },
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "alarmType": "${alarmType}",
+        "scriptLang": "JS",
+        "alarmDetailsBuildJs": "var details = {\n  observed_state: msg.observed_state,\n  expected_state: msg.expected_state,\n  anomaly_score: msg.anomaly_score,\n  health_score: msg.health_score,\n  severity: msg.severity,\n  last_seen: msg.last_seen\n};\ntry {\n  details.detection = JSON.parse(msg.anomaly_details || '{}');\n} catch (e) {\n  details.detection = {raw: msg.anomaly_details};\n}\nreturn details;",
+        "alarmDetailsBuildTbel": "return {};",
+        "severity": "${alarmSeverity}",
+        "propagate": false,
+        "propagateToOwner": false,
+        "propagateToTenant": false,
+        "useMessageAlarmData": false,
+        "overwriteAlarmDetails": true,
+        "dynamicSeverity": true,
+        "relationTypes": []
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 2050,
+        "layoutY": 260
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42544200-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629343,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Build OFFLINE twin state",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "var eventTs = parseInt(metadata.ts, 10);\nif (!isFinite(eventTs) || eventTs <= 0) {\n    eventTs = Date.now();\n}\n\nvar previousAnomalyType = \"NONE\";\nif (metadata.anomaly_type !== null && metadata.anomaly_type !== undefined) {\n    try {\n        var previous = typeof metadata.anomaly_type === \"string\" ?\n            JSON.parse(metadata.anomaly_type) : metadata.anomaly_type;\n        previousAnomalyType = previous && previous.value !== undefined ?\n            String(previous.value) : String(previous);\n    } catch (ignore) {\n        previousAnomalyType = String(metadata.anomaly_type);\n    }\n}\n\nmsg = {\n    last_seen: eventTs,\n    observed_state: \"OFFLINE\",\n    expected_state: \"NORMAL\",\n    health_score: 0,\n    anomaly_score: 100,\n    anomaly_type: \"CONNECTION_LOST\",\n    anomaly: true,\n    severity: \"CRITICAL\",\n    online: false,\n    state_match: false,\n    recovery_count: 0,\n    previous_anomaly_type: previousAnomalyType,\n    active_anomalies: \"[\\\"CONNECTION_LOST\\\"]\",\n    anomaly_details: \"{\\\"reason\\\":\\\"No device activity before inactivity timeout\\\"}\"\n};\n\nmetadata.prevAlarmType = previousAnomalyType;\nmetadata.alarmType = \"CONNECTION_LOST\";\nmetadata.alarmSeverity = \"CRITICAL\";\n\nreturn { msg: msg, metadata: metadata, msgType: \"POST_TELEMETRY_REQUEST\" };\n",
+        "tbelScript": "return {msg: msg, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 320,
+        "layoutY": 470
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42546910-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629345,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+      "name": "Save OFFLINE on device",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 1,
+      "configuration": {
+        "defaultTTL": 0,
+        "useServerTs": false,
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        }
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 570,
+        "layoutY": 410
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42546911-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629345,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+      "name": "OFFLINE originator: warehouse",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "originatorSource": "RELATED",
+        "relationsQuery": {
+          "direction": "TO",
+          "maxLevel": 1,
+          "filters": [
+            {
+              "relationType": "Contains",
+              "entityTypes": [
+                "ASSET"
+              ],
+              "negate": false
+            }
+          ],
+          "fetchLastLevelOnly": false
+        },
+        "entityType": null,
+        "entityNamePattern": null
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 570,
+        "layoutY": 520
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42549020-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629346,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
+      "name": "Save OFFLINE twin time series",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 1,
+      "configuration": {
+        "defaultTTL": 0,
+        "useServerTs": false,
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        }
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 830,
+        "layoutY": 430
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42549021-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629346,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Prepare OFFLINE server attributes",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "return {msg: msg, metadata: metadata, msgType: 'POST_ATTRIBUTES_REQUEST'};",
+        "tbelScript": "return {msg: msg, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 830,
+        "layoutY": 520
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42549022-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629346,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+      "name": "Save OFFLINE twin attributes",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 3,
+      "configuration": {
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        },
+        "scope": "SERVER_SCOPE",
+        "notifyDevice": false,
+        "sendAttributesUpdatedNotification": false,
+        "updateAttributesOnlyOnValueChange": true
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1080,
+        "layoutY": 520
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4254b730-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629347,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.metadata.TbGetAttributesNode",
+      "name": "Load active anomaly before OFFLINE",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 1,
+      "configuration": {
+        "fetchTo": "METADATA",
+        "clientAttributeNames": [],
+        "sharedAttributeNames": [],
+        "serverAttributeNames": [],
+        "latestTsKeyNames": [
+          "anomaly_type"
+        ],
+        "tellFailureIfAbsent": false,
+        "getLatestValueWithTs": true
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 320,
+        "layoutY": 470
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4254b731-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629347,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
+      "name": "ACTIVITY originator: warehouse",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "originatorSource": "RELATED",
+        "relationsQuery": {
+          "direction": "TO",
+          "maxLevel": 1,
+          "filters": [
+            {
+              "relationType": "Contains",
+              "entityTypes": [
+                "ASSET"
+              ],
+              "negate": false
+            }
+          ],
+          "fetchLastLevelOnly": false
+        },
+        "entityType": null,
+        "entityNamePattern": null
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 320,
+        "layoutY": 730
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4254de40-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629348,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.action.TbClearAlarmNode",
+      "name": "Clear CONNECTION_LOST alarm",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "alarmType": "CONNECTION_LOST",
+        "scriptLang": "JS",
+        "alarmDetailsBuildJs": "var details = {\n  observed_state: msg.observed_state,\n  expected_state: msg.expected_state,\n  anomaly_score: msg.anomaly_score,\n  health_score: msg.health_score,\n  severity: msg.severity,\n  last_seen: msg.last_seen\n};\ntry {\n  details.detection = JSON.parse(msg.anomaly_details || '{}');\n} catch (e) {\n  details.detection = {raw: msg.anomaly_details};\n}\nreturn details;",
+        "alarmDetailsBuildTbel": "return {};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 570,
+        "layoutY": 730
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "4254de41-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629348,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+      "name": "Save client attributes",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 3,
+      "configuration": {
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        },
+        "scope": "CLIENT_SCOPE",
+        "notifyDevice": false,
+        "sendAttributesUpdatedNotification": false,
+        "updateAttributesOnlyOnValueChange": true
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 320,
+        "layoutY": 850
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42550550-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629349,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
+      "name": "RPC call request",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "timeoutInSeconds": 60
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 320,
+        "layoutY": 950
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42550551-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629349,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log RPC response from device",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "return 'Digital Twin message: ' + JSON.stringify(msg);",
+        "tbelScript": "return 'Digital Twin message: ' + JSON.stringify(msg);"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 570,
+        "layoutY": 950
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42552c60-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629350,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.action.TbLogNode",
+      "name": "Log other messages",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "return 'Digital Twin message: ' + JSON.stringify(msg);",
+        "tbelScript": "return 'Digital Twin message: ' + JSON.stringify(msg);"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 320,
+        "layoutY": 1050
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42552c61-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629350,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
+      "name": "RPC is setLed?",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "return msg.method === 'setLed' || msg.method === 'setState';",
+        "tbelScript": "return false;"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 570,
+        "layoutY": 850
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42552c62-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629350,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+      "name": "Capture expected LED state",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scriptLang": "JS",
+        "jsScript": "var p=msg.params; var v=false; if(typeof p==='boolean'){v=p;} else if(p && p.state!==undefined){v=p.state===true || p.state==='true';} else if(p && p.value!==undefined){v=p.value===true || p.value==='true';} return {msg:{expected_led_state:v,expected_led_updated_ts:Date.now()},metadata:metadata,msgType:'POST_ATTRIBUTES_REQUEST'};",
+        "tbelScript": "return {msg: msg, metadata: metadata, msgType: msgType};"
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 830,
+        "layoutY": 850
+      }
+    },
+    {
+      "id": {
+        "entityType": "RULE_NODE",
+        "id": "42552c63-bd44-11f1-a421-4f9f6ab012b1"
+      },
+      "createdTime": 1790823629350,
+      "ruleChainId": {
+        "entityType": "RULE_CHAIN",
+        "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+      },
+      "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
+      "name": "Save expected LED state",
+      "debugSettings": null,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 3,
+      "configuration": {
+        "processingSettings": {
+          "type": "ON_EVERY_MESSAGE"
+        },
+        "scope": "SERVER_SCOPE",
+        "notifyDevice": false,
+        "sendAttributesUpdatedNotification": false,
+        "updateAttributesOnlyOnValueChange": true
+      },
+      "externalId": null,
+      "additionalInfo": {
+        "layoutX": 1080,
+        "layoutY": 850
+      }
+    }
+  ],
+  "connections": [
+    {
+      "fromIndex": 0,
+      "toIndex": 1,
+      "type": "Post telemetry"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 19,
+      "type": "Inactivity Event"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 20,
+      "type": "Activity Event"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 22,
+      "type": "Post attributes"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 23,
+      "type": "RPC Request to Device"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 24,
+      "type": "RPC Request from Device"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 25,
+      "type": "Other"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 26,
+      "type": "RPC Request to Device"
+    },
+    {
+      "fromIndex": 1,
+      "toIndex": 2,
+      "type": "Failure"
+    },
+    {
+      "fromIndex": 1,
+      "toIndex": 2,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 3,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 2,
+      "toIndex": 4,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 4,
+      "toIndex": 5,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 5,
+      "toIndex": 6,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 5,
+      "toIndex": 7,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 5,
+      "toIndex": 9,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 7,
+      "toIndex": 8,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 9,
+      "toIndex": 10,
+      "type": "True"
+    },
+    {
+      "fromIndex": 9,
+      "toIndex": 11,
+      "type": "Failure"
+    },
+    {
+      "fromIndex": 9,
+      "toIndex": 11,
+      "type": "False"
+    },
+    {
+      "fromIndex": 10,
+      "toIndex": 11,
+      "type": "Cleared"
+    },
+    {
+      "fromIndex": 10,
+      "toIndex": 11,
+      "type": "Failure"
+    },
+    {
+      "fromIndex": 10,
+      "toIndex": 11,
+      "type": "False"
+    },
+    {
+      "fromIndex": 11,
+      "toIndex": 12,
+      "type": "True"
+    },
+    {
+      "fromIndex": 13,
+      "toIndex": 14,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 13,
+      "toIndex": 15,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 15,
+      "toIndex": 9,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 15,
+      "toIndex": 16,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 15,
+      "toIndex": 17,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 17,
+      "toIndex": 18,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 19,
+      "toIndex": 13,
+      "type": "Failure"
+    },
+    {
+      "fromIndex": 19,
+      "toIndex": 13,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 20,
+      "toIndex": 21,
+      "type": "Success"
+    },
+    {
+      "fromIndex": 26,
+      "toIndex": 27,
+      "type": "True"
+    },
+    {
+      "fromIndex": 27,
+      "toIndex": 28,
+      "type": "Success"
+    }
+  ],
+  "ruleChainConnections": null
+}

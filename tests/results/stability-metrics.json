@@ -1,0 +1,11 @@
+{
+  "duration_minutes": 1.0,
+  "period_seconds": 5.0,
+  "expected_samples": 12,
+  "received_twin_samples": 12,
+  "data_continuity_pct": 100.0,
+  "normal_state_pct": 100.0,
+  "online_pct": 100.0,
+  "max_latency_ms": 146,
+  "passed": true
+}

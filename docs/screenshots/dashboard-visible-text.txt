@@ -1,0 +1,182 @@
+home
+Home
+Alarms
+dashboards
+Dashboards
+hub
+IoT Hub
+category
+Entities
+devices_other
+Devices
+domain
+Assets
+view_quilt
+Entity views
+lan
+Gateways
+badge
+Profiles
+Device profiles
+Asset profiles
+supervisor_account
+Customers
+Calculated fields
+settings_ethernet
+Rule chains
+settings_input_antenna
+Edge management
+router
+Instances
+settings_ethernet
+Rule chain templates
+construction
+Advanced features
+memory
+OTA updates
+history
+Version control
+folder
+Resources
+now_widgets
+Widgets library
+filter
+Image gallery
+view_in_ar
+SCADA symbols
+JavaScript library
+Resources library
+Notification center
+smartphone
+Mobile center
+insert_chart
+API usage
+settings
+Settings
+security
+Security
+track_changes
+Audit logs
+OAuth 2.0
+dashboards Dashboards
+>
+dashboard Produce Warehouse - Digital Twin
+Star
+22,494
+close
+fullscreen
+notifications
+99+
+account_circle
+tenant@thingsboard.org
+Tenant administrator
+more_vert
+more_horiz
+Tổng quan kho bảo quản
+fullscreen
+file_download
+edit
+Edit mode
+wallpaper
+query_builder
+Realtime - last 1 hour
+Produce Warehouse - Digital Twin
+Produce Warehouse - Digital Twin
+Sơ đồ kho tương tác — nhấn vào cảm biến để xem thông số
+fullscreen
+DHT22 · Khu kệ hàng
+PIR · Cửa nhập kho
+LED GPIO2 · Góc điều khiển
++
+−
+fullscreen
+wifi
+Kết nối
+false
+fullscreen
+health_and_safety
+Điểm sức khỏe
+100 %
+fullscreen
+visibility
+Trạng thái Digital Twin
+INIT
+Lịch sử môi trường
+Realtime - last 1 hour
+fullscreen
+20
+30
+40
+50
+60
+70
+08:20
+08:25
+08:30
+08:35
+08:40
+08:45
+08:50
+09:10
+09:15
+09:00
+	Avg
+
+Nhiệt độ
+	23.2 °C
+
+Độ ẩm
+	65 %
+Lịch sử cường độ Wi-Fi
+Realtime - last 1 hour
+fullscreen
+-90
+-80
+-70
+-60
+-50
+08:20
+08:25
+08:30
+08:35
+08:40
+08:45
+08:50
+09:10
+09:15
+09:00
+	Avg
+
+RSSI
+	-71 dBm
+Lịch sử sức khỏe Digital Twin
+Realtime - last 1 hour
+fullscreen
+0
+20
+40
+60
+80
+100
+08:20
+08:25
+08:30
+08:35
+08:40
+08:45
+08:50
+09:10
+09:15
+09:00
+	Avg
+
+Health score
+	50 %
+
+Anomaly score
+	50
+Điều khiển đèn GPIO2
+fullscreen
+LED GPIO2
+OFF
+Powered by ThingsBoard v.4.3.1.5

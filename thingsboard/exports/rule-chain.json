@@ -1,0 +1,25 @@
+{
+  "id": {
+    "entityType": "RULE_CHAIN",
+    "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+  },
+  "createdTime": 1790265620048,
+  "tenantId": {
+    "entityType": "TENANT",
+    "id": "fff5ea60-b7eb-11f1-8e5b-ffda4f6bd289"
+  },
+  "name": "Produce Warehouse Digital Twin - Processing",
+  "type": "CORE",
+  "firstRuleNodeId": {
+    "entityType": "RULE_NODE",
+    "id": "db512920-bd3d-11f1-a421-4f9f6ab012b1"
+  },
+  "root": false,
+  "debugMode": false,
+  "externalId": null,
+  "version": 22,
+  "configuration": null,
+  "additionalInfo": {
+    "description": "CE-compatible Digital Twin state and anomaly processing for the produce warehouse."
+  }
+}

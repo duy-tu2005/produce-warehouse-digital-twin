@@ -1,0 +1,44 @@
+{
+  "project": "Produce Warehouse Digital Twin",
+  "thingsboardEdition": "Community Edition compatible",
+  "generatedAt": 1790823630634,
+  "entities": {
+    "ruleChain": {
+      "name": "Produce Warehouse Digital Twin - Processing",
+      "id": "0adf2320-b831-11f1-b5ea-4f9f6ab012b1"
+    },
+    "asset": {
+      "name": "Produce_Warehouse_01",
+      "id": "631f25d0-b831-11f1-b5ea-4f9f6ab012b1"
+    },
+    "device": {
+      "name": "ESP32_Env_Node_01",
+      "id": "428c1ae0-bd44-11f1-a421-4f9f6ab012b1"
+    },
+    "entityViews": {
+      "environment": {
+        "name": "DHT22_Storage_Racks_View",
+        "id": "7355bba0-bd39-11f1-a421-4f9f6ab012b1"
+      },
+      "motion": {
+        "name": "PIR_Loading_Door_View",
+        "id": "735f5890-bd39-11f1-a421-4f9f6ab012b1"
+      },
+      "led": {
+        "name": "LED_GPIO2_Control_Corner_View",
+        "id": "73623ec0-bd39-11f1-a421-4f9f6ab012b1"
+      }
+    },
+    "dashboard": {
+      "name": "Produce Warehouse - Digital Twin",
+      "id": "1fbad6d0-b832-11f1-b5ea-4f9f6ab012b1"
+    }
+  },
+  "relations": [
+    "Produce_Warehouse_01 --Contains--> ESP32_Env_Node_01",
+    "Produce_Warehouse_01 --Contains--> DHT22_Storage_Racks_View",
+    "Produce_Warehouse_01 --Contains--> PIR_Loading_Door_View",
+    "Produce_Warehouse_01 --Contains--> LED_GPIO2_Control_Corner_View"
+  ],
+  "containsSecrets": false
+}
